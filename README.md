@@ -12,7 +12,17 @@ No es asesoramiento jurídico. Los modelos de carta están pendientes de revisi�
 | --- | --- |
 | `app/` | La aplicación. `index.html` es un único archivo que funciona abriéndolo en el navegador o en cualquier alojamiento estático. |
 | `landing/` | Fuente de la página de inicio, en el formato del lienzo de diseño de Claude (`.dc.html`). No se abre directamente en un navegador. |
-| `docs/` | `dossier.md` (mercado, decisión, marca, auditoría, registro de decisiones), `plan-de-lanzamiento.md` (30 días, 10 piezas y mensajes de outreach) y `modelo-de-negocio.md`. |
+| `docs/` | `dossier.md` (mercado, decisión, marca, auditoría, registro de decisiones), `plan-de-lanzamiento.md` (30 días, 10 piezas y mensajes de outreach), `modelo-de-negocio.xlsx` (hoja de cálculo con fórmulas) y `modelo-de-negocio.md` (su resumen). |
+
+## Modelo de negocio
+
+[`docs/modelo-de-negocio.xlsx`](docs/modelo-de-negocio.xlsx) es la hoja de cálculo completa: 465 fórmulas, sin cifras derivadas escritas a mano.
+
+- **Supuestos**: precios, tráfico, conversión, bajas y costes para los escenarios pesimista, base y optimista, cada uno con su justificación. Las celdas en azul sobre amarillo son las editables.
+- **Pesimista**, **Base** y **Optimista**: proyección mes a mes del primer año.
+- **Resumen**: punto de equilibrio, ingresos y resultado de cada escenario.
+
+Tráfico y conversión son estimaciones sin dato propio. Hay que sustituirlas por cifras medidas en cuanto existan.
 
 ## Usar la app
 

@@ -1,6 +1,6 @@
 # Modelo de negocio (resumen)
 
-La hoja de cálculo viva, con todas las fórmulas, está en https://claude.ai/artifact/WbBgPPdqxSXC4xbcmzD1Tc (se descarga como .xlsx desde su menú).
+La hoja de cálculo con todas las fórmulas está en [`modelo-de-negocio.xlsx`](modelo-de-negocio.xlsx). Este archivo es su resumen.
 
 ## Supuestos
 

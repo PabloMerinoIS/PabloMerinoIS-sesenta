@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Sesenta, página de inicio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#ECEEF3}
+a{color:#3A36E0}a:hover{color:#181B34}
+</style>
+</helmet>
+<div style="background: #ECEEF3; color: #181B34; font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 18px; line-height: 1.55">
+
+<header style="max-width: 1120px; margin: 0 auto; padding: 24px 24px 0; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center">
+<div style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -0.03em">Sesenta</div>
+<a href="https://claude.ai/artifact/4Fy1tMXsyqWH9aC9AEQTxb" style="color: #181B34; font-weight: 600; font-size: 16px; padding: 10px 0; min-height: 44px; box-sizing: border-box">Abrir la calculadora</a>
+</header>
+
+<section style="max-width: 1120px; margin: 0 auto; padding: 56px 24px 72px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center">
+<div style="flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: clamp(40px, 6vw, 68px); line-height: 1.02; letter-spacing: -0.035em; text-wrap: balance">La factura venció. La deuda sigue creciendo.</h1>
+<p style="margin: 0; max-width: 34em; font-size: 20px; color: #3B3F5C">Desde el día siguiente al vencimiento, tu cliente te debe intereses y 40 € por factura. Lo dice la ley, aunque no lo pusieras en el contrato. Sesenta hace la cuenta y te deja la carta escrita. El tono lo eliges tú.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: center">
+<a href="https://claude.ai/artifact/4Fy1tMXsyqWH9aC9AEQTxb" style="background: #3A36E0; color: #FFFFFF; font-weight: 600; text-decoration: none; padding: 15px 24px; border-radius: 10px; font-size: 18px; min-height: 44px; box-sizing: border-box">Calcular lo que me deben</a>
+<span style="font-size: 15px; color: #5A5E78">Gratis y sin registro. Tus facturas no salen de tu navegador.</span>
+</div>
+</div>
+
+<div style="flex: 1 1 360px; min-width: 0; background: #FFFFFF; border: 1.5px solid #D3D7E3; border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 18px">
+<div style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 22px">Haz la prueba con una factura tuya</div>
+<div style="display: flex; flex-wrap: wrap; gap: 14px">
+<label for="demo-amount" style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #5A5E78">Importe a cobrar, en euros
+<input id="demo-amount" type="number" min="1" step="50" value="{{amount}}" onChange="{{onAmount}}" style="font: inherit; font-size: 18px; color: #181B34; padding: 10px 12px; border: 1.5px solid #D3D7E3; border-radius: 8px; min-height: 44px; box-sizing: border-box; width: 100%">
+</label>
+<label for="demo-days" style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #5A5E78">Días de retraso
+<input id="demo-days" type="number" min="1" max="1500" step="1" value="{{days}}" onChange="{{onDays}}" style="font: inherit; font-size: 18px; color: #181B34; padding: 10px 12px; border: 1.5px solid #D3D7E3; border-radius: 8px; min-height: 44px; box-sizing: border-box; width: 100%">
+</label>
+</div>
+<div style="display: flex; flex-direction: column; font-variant-numeric: tabular-nums; font-size: 17px">
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #D3D7E3"><span>Lo que debían ingresarte</span><span>{{fAmount}}</span></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #D3D7E3"><span>Intereses de demora al 10,40 %</span><span>{{fInterest}}</span></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 2px solid #181B34"><span>Indemnización por costes de cobro</span><span>40,00 €</span></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 14px 0 0; align-items: baseline"><span style="font-weight: 600">Te deben</span><span style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 40px; letter-spacing: -0.02em; background: linear-gradient(transparent 52%, #FFE45C 52%, #FFE45C 92%, transparent 92%); padding: 0 4px">{{fTotal}}</span></div>
+</div>
+<p style="margin: 0; font-size: 14px; color: #5A5E78">Cuenta rápida con el tipo del segundo semestre de 2026. La calculadora completa aplica el tipo de cada semestre y descuenta los pagos parciales.</p>
+</div>
+</section>
+
+<section style="background: #181B34; color: #ECEEF8">
+<div style="max-width: 1120px; margin: 0 auto; padding: 64px 24px; display: flex; flex-direction: column; gap: 32px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -0.02em; max-width: 22em; text-wrap: balance">Acabamos de empezar y no tenemos testimonios. Tenemos los datos de por qué existe esto.</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 32px">
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<div style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 56px; line-height: 1; color: #FFE45C">44 %</div>
+<p style="margin: 0">de los autónomos sufre morosidad.</p>
+<a href="https://static.apuntmedia.es/apunt/public/content/file/original/2026/0112/12/np-barometro-cierre-25-y-perspectivas-2026.pdf" style="color: #B9BCFF; font-size: 15px">Barómetro de ATA, enero de 2026</a>
+</div>
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<div style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 56px; line-height: 1; color: #FFE45C">80,5 días</div>
+<p style="margin: 0">tardaron de media las pymes en cobrar en 2025. El máximo legal son 60.</p>
+<a href="https://cepyme.es/storage/2026/04/NdP-El-esfuerzo-financiero-de-las-pymes-como-consecuencia-de-la-morosidad-se-cifra-en-1.957-millones-de-euros.pdf" style="color: #B9BCFF; font-size: 15px">Cepyme, abril de 2026</a>
+</div>
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<div style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 56px; line-height: 1; color: #FFE45C">89 %</div>
+<p style="margin: 0">de los proveedores no reclama los intereses que le corresponden.</p>
+<a href="https://forbes.es/economia/907227/el-85-de-las-grandes-empresas-incumple-los-plazos-legales-de-pago-segun-pmcm/" style="color: #B9BCFF; font-size: 15px">Estudio de la PMcM, publicado en abril de 2026</a>
+</div>
+</div>
+</div>
+</section>
+
+<section style="max-width: 1120px; margin: 0 auto; padding: 72px 24px; display: flex; flex-direction: column; gap: 32px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -0.02em">Tres pasos, en este orden</h2>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 24px">
+<li style="flex: 1 1 280px; min-width: 0; background: #FFFFFF; border: 1.5px solid #D3D7E3; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 22px">1. Apunta la factura</div>
+<p style="margin: 0; color: #3B3F5C">Cliente, importe a cobrar, fecha de entrega y plazo pactado. Si el contrato decía 90 días, Sesenta calcula con 60, que es el máximo que permite la ley.</p>
+</li>
+<li style="flex: 1 1 280px; min-width: 0; background: #FFFFFF; border: 1.5px solid #D3D7E3; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 22px">2. Mira la cifra y de dónde sale</div>
+<p style="margin: 0; color: #3B3F5C">Intereses tramo a tramo con el tipo que publicó el BOE cada semestre, los 40 € y los pagos parciales ya descontados. Todo a la vista, para que puedas defenderlo.</p>
+</li>
+<li style="flex: 1 1 280px; min-width: 0; background: #FFFFFF; border: 1.5px solid #D3D7E3; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 22px">3. Envía la carta que toque</div>
+<p style="margin: 0; color: #3B3F5C">Primero un recordatorio amable, sin cifras. Si no hay respuesta, la reclamación formal. Y si tampoco, la propuesta de negociación que hace falta antes de ir al juzgado.</p>
+</li>
+</ol>
+</section>
+
+<section style="max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; display: flex; flex-wrap: wrap; gap: 24px">
+<div style="flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -0.02em">Lo que hace</h2>
+<ul style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; color: #3B3F5C">
+<li>Calcula intereses de demora con la Ley 3/2004 y los tipos oficiales desde 2015.</li>
+<li>Suma los 40 € de indemnización por cada factura pagada tarde.</li>
+<li>Redacta tres cartas con tus datos, la cifra y el plazo, listas para copiar.</li>
+<li>Te dice qué paso toca con cada cliente y cuándo.</li>
+<li>Sigue contando si te pagan solo una parte.</li>
+</ul>
+</div>
+<div style="flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -0.02em">Lo que no hace</h2>
+<ul style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; color: #3B3F5C">
+<li>No envía el burofax por ti. Te da el texto; el envío lo haces tú.</li>
+<li>No sustituye a un abogado. Si vas a demandar, enséñale antes la carta.</li>
+<li>No garantiza que cobres. Te deja hechas la cuenta y la carta.</li>
+<li>No calcula intereses en facturas a particulares ni a Administraciones públicas. La Ley 3/2004 no cubre a los primeros y las segundas tienen plazos y trámites propios.</li>
+<li>No aplica un tipo de interés pactado en contrato. Calcula siempre con el tipo legal.</li>
+</ul>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border-top: 1.5px solid #D3D7E3; border-bottom: 1.5px solid #D3D7E3">
+<div style="max-width: 1120px; margin: 0 auto; padding: 72px 24px; display: flex; flex-direction: column; gap: 32px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -0.02em">Lo que probablemente estás pensando</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 32px 48px">
+<div style="flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">«No quiero perder al cliente.»</h3>
+<p style="margin: 0; color: #3B3F5C">Por eso la primera carta no menciona intereses. Y la segunda ofrece renunciar a ellos si te paga el principal en siete días. Reclamar con educación y con números no es una grosería. Es contabilidad.</p>
+</div>
+<div style="flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">«Son cuatro duros, no compensa.»</h3>
+<p style="margin: 0; color: #3B3F5C">Los intereses de una factura pequeña son pocos, sí. Los 40 € son fijos por cada factura, sea de 200 € o de 20.000. Y lo que de verdad quieres cobrar es el principal: los intereses son lo que le da prisa a la otra parte.</p>
+</div>
+<div style="flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">«Seguro que es un lío legal.»</h3>
+<p style="margin: 0; color: #3B3F5C">La regla cabe en una línea: tipo del Banco Central Europeo más ocho puntos, por los días de retraso. El lío es que el tipo cambia cada semestre. Esa parte la hace Sesenta.</p>
+</div>
+<div style="flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">«¿Y si aun así no paga?»</h3>
+<p style="margin: 0; color: #3B3F5C">Entonces tienes por escrito un intento de negociación con propuesta y fecha. Desde abril de 2025, acreditar ese intento es requisito para demandar. Si te basta con esa carta depende del juzgado, así que antes de ir a juicio enséñasela a un abogado.</p>
+</div>
+</div>
+</div>
+</section>
+
+<section style="max-width: 1120px; margin: 0 auto; padding: 72px 24px; display: flex; flex-direction: column; gap: 28px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -0.02em">Precio</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 24px">
+<div style="flex: 1 1 320px; min-width: 0; background: #FFFFFF; border: 1.5px solid #D3D7E3; border-radius: 14px; padding: 28px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-weight: 600">Calculadora</div>
+<div style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 44px; line-height: 1">0 €</div>
+<p style="margin: 0; color: #3B3F5C">El cálculo completo y el recordatorio amable. Sin registro.</p>
+</div>
+<div style="flex: 1 1 320px; min-width: 0; background: #FFFFFF; border: 2.5px solid #3A36E0; border-radius: 14px; padding: 28px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-weight: 600">Sesenta completo</div>
+<div style="font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: 44px; line-height: 1">79 € al año</div>
+<p style="margin: 0; color: #3B3F5C">O 12 € al mes, sin permanencia. Reclamación formal, propuesta de negociación, seguimiento y todas las facturas que quieras. Precios sin IVA.</p>
+</div>
+</div>
+<p style="margin: 0; max-width: 44em; color: #3B3F5C">Durante el lanzamiento está todo abierto y no pedimos tarjeta. Cuando activemos el pago avisaremos con tiempo y la calculadora seguirá siendo gratuita.</p>
+</section>
+
+<section style="max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; display: flex; flex-direction: column; gap: 28px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -0.02em">Preguntas frecuentes</h2>
+<div style="display: flex; flex-direction: column; gap: 22px; max-width: 46em">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">¿Puedo reclamar intereses si no lo puse en el contrato ni en la factura?</h3>
+<p style="margin: 0; color: #3B3F5C">Sí. La Ley 3/2004 dice que se deben de forma automática desde que vence el plazo, sin aviso previo. Si pactasteis un tipo distinto en el contrato, manda el pactado, y ese caso Sesenta todavía no lo calcula.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">¿Los 40 € son por reclamación o por factura?</h3>
+<p style="margin: 0; color: #3B3F5C">Por factura. El Tribunal Supremo lo fijó en 2021 y lo ha reiterado después, la última vez que nos consta en octubre de 2025.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">¿Vale para facturas a un ayuntamiento u otra Administración?</h3>
+<p style="margin: 0; color: #3B3F5C">No. Una Administración también debe intereses si paga tarde, pero sus plazos y la forma de reclamar son otros, y Sesenta no los cubre. Para ese caso, asesórate.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">¿Quién ha revisado las cartas?</h3>
+<p style="margin: 0; color: #3B3F5C">Todavía ningún abogado, y preferimos decirlo. Son modelos redactados a partir de la ley, pendientes de revisión por un procesalista. Léelas enteras y cámbialas antes de enviarlas.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">¿La carta de negociación me asegura que admitan la demanda?</h3>
+<p style="margin: 0; color: #3B3F5C">No podemos asegurarlo. Está redactada como solicitud de negociación con propuesta concreta, que es lo que pide la Ley Orgánica 1/2025, pero los juzgados no aplican todos el mismo criterio. Envíala por un medio que acredite contenido y recepción, y si vas a demandar, que la vea antes un abogado.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">¿Dónde se guardan mis facturas?</h3>
+<p style="margin: 0; color: #3B3F5C">En tu navegador y en ningún otro sitio. No tenemos servidor con tus datos. La contrapartida es que si cambias de dispositivo tienes que llevarte la copia de seguridad, que es un botón.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 style="margin: 0; font-size: 20px; font-weight: 600">¿Por qué se llama Sesenta?</h3>
+<p style="margin: 0; color: #3B3F5C">Porque sesenta días es el plazo máximo de pago que permite la ley entre empresas. Un contrato puede acortarlo, pero no alargarlo.</p>
+</div>
+</div>
+</section>
+
+<section style="background: #3A36E0; color: #FFFFFF">
+<div style="max-width: 1120px; margin: 0 auto; padding: 64px 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between">
+<h2 style="margin: 0; flex: 1 1 420px; font-family: 'Bricolage Grotesque', Arial, sans-serif; font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance">Tienes una factura vencida en la cabeza. Ponle cifra.</h2>
+<a href="https://claude.ai/artifact/4Fy1tMXsyqWH9aC9AEQTxb" style="background: #FFE45C; color: #181B34; font-weight: 600; text-decoration: none; padding: 15px 24px; border-radius: 10px; font-size: 18px; min-height: 44px; box-sizing: border-box">Calcular lo que me deben</a>
+</div>
+</section>
+
+<footer style="max-width: 1120px; margin: 0 auto; padding: 32px 24px 48px; font-size: 14px; color: #5A5E78">
+<p style="margin: 0; max-width: 60em">Sesenta es una herramienta de cálculo y redacción. No presta asesoramiento jurídico. Los tipos de interés proceden de las resoluciones semestrales publicadas en el BOE.</p>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":4700}}'>
+class Component extends DCLogic {
+renderVals() {
+var st = this.state || {};
+var amount = st.amount == null ? 3200 : st.amount;
+var days = st.days == null ? 95 : st.days;
+var a = Math.max(0, Math.min(10000000, Number(amount) || 0));
+var d = Math.max(0, Math.min(1500, Math.floor(Number(days) || 0)));
+var interest = Math.round(a * 0.104 * d / 365 * 100) / 100;
+var fmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' });
+var self = this;
+return {
+amount: amount,
+days: days,
+fAmount: fmt.format(a),
+fInterest: fmt.format(interest),
+fTotal: fmt.format(a + interest + (a > 0 && d > 0 ? 40 : 0)),
+onAmount: function (e) { self.setState({ amount: e.target.value }); },
+onDays: function (e) { self.setState({ days: e.target.value }); }
+};
+}
+}
+</script>
+</body>
+</html>

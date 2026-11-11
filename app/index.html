@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sesenta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Idea de diseño: un libro de cuentas con rotulador fluorescente. Cartera a la izquierda, expediente a la derecha;
+   lo único que se subraya en amarillo es el dinero que te deben. */
+:root{
+  --paper:#ECEEF3; --surface:#FFFFFF; --ink:#181B34; --muted:#5A5E78; --line:#D3D7E3;
+  --accent:#3A36E0; --on-accent:#FFFFFF; --marker:#FFE45C; --on-marker:#181B34;
+  --late:#B81C36; --late-soft:#FBE6EA; --ok:#0B6E52; --ok-soft:#DDF3EA; --wait:#7A5200; --wait-soft:#FBEFD2;
+  --display:"Bricolage Grotesque","Arial Narrow",Arial,sans-serif;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#111328; --surface:#1A1D38; --ink:#ECEEF8; --muted:#A4A8C4; --line:#343860;
+    --accent:#9B98FF; --on-accent:#111328; --marker:#F0D43A; --on-marker:#181B34;
+    --late:#FF7A8E; --late-soft:#3A1A27; --ok:#56D3A8; --ok-soft:#14342D; --wait:#F1BD5E; --wait-soft:#3A2E14;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#111328; --surface:#1A1D38; --ink:#ECEEF8; --muted:#A4A8C4; --line:#343860;
+  --accent:#9B98FF; --on-accent:#111328; --marker:#F0D43A; --on-marker:#181B34;
+  --late:#FF7A8E; --late-soft:#3A1A27; --ok:#56D3A8; --ok-soft:#14342D; --wait:#F1BD5E; --wait-soft:#3A2E14;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+button,input,select,textarea{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 56px;display:flex;flex-direction:column;gap:20px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand h1{font-size:2.5rem;font-weight:700;letter-spacing:-.03em}
+.brand p{margin:0;color:var(--muted);font-size:.95rem}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+.field input,.field select,.field textarea{background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--ink);font-size:1rem;min-height:44px;width:100%}
+.field textarea{min-height:88px;resize:vertical}
+.field .err{color:var(--late);font-size:.85rem}
+.field small{color:var(--muted)}
+.btn{background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:9px 14px;min-height:44px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:600}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.quiet{border-color:transparent;background:transparent;text-decoration:underline;text-underline-offset:3px;padding:9px 6px}
+.btn.danger{color:var(--late)}
+.btn.small{min-height:44px;padding:8px 12px;font-size:.9rem}
+.backlist{display:none}
+
+.banner{background:var(--wait-soft);color:var(--wait);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.95rem}
+.banner .btn{background:transparent;border-color:currentColor;color:inherit}
+
+.summary{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:0;background:var(--surface);border-radius:14px;border:1.5px solid var(--line);overflow:hidden}
+.summary>div{padding:16px 18px;border-left:1.5px solid var(--line);display:flex;flex-direction:column;gap:4px;min-width:0}
+.summary>div:first-child{border-left:0}
+.summary dt{font-size:.85rem;color:var(--muted)}
+.summary dd{margin:0;font-family:var(--display);font-weight:700;font-size:1.45rem;font-variant-numeric:tabular-nums}
+.summary .grand dd{font-size:2.3rem;letter-spacing:-.02em}
+.summary .grand dd span{background:linear-gradient(transparent 52%,var(--marker) 52%,var(--marker) 92%,transparent 92%);padding:0 4px;margin-left:-4px}
+:root[data-theme="dark"] .summary .grand dd span{background:var(--marker);color:var(--on-marker);border-radius:3px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .summary .grand dd span{background:var(--marker);color:var(--on-marker);border-radius:3px}}
+.summary .hint{font-size:.85rem;color:var(--muted)}
+
+.cols{display:grid;grid-template-columns:minmax(280px,360px) minmax(0,1fr);gap:20px;align-items:start}
+.cols>section{min-width:0}
+.listhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.listhead h2{font-size:1.2rem}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.row{width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;border-left-width:6px}
+.row[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.row.s-vencida{border-left-color:var(--late)}
+.row.s-en-plazo{border-left-color:var(--line)}
+.row.s-cobrada{border-left-color:var(--ok)}
+.row.s-cobrada-tarde{border-left-color:var(--wait)}
+.row .who{font-weight:600;overflow-wrap:anywhere}
+.row .amt{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.row .meta{font-size:.85rem;color:var(--muted);grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:space-between}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:600;white-space:nowrap}
+.pill.vencida{background:var(--late-soft);color:var(--late)}
+.pill.en-plazo{background:var(--paper);color:var(--muted)}
+.pill.cobrada{background:var(--ok-soft);color:var(--ok)}
+.pill.cobrada-tarde{background:var(--wait-soft);color:var(--wait)}
+.todo{color:var(--accent);font-weight:600}
+
+.detail{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:22px;min-width:0}
+.dhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 16px;align-items:flex-start}
+.dhead h2{font-size:1.7rem;overflow-wrap:anywhere}
+.dhead p{margin:4px 0 0;color:var(--muted)}
+.dhead .acts{display:flex;gap:8px;flex-wrap:wrap}
+.owed{display:flex;flex-wrap:wrap;gap:6px 28px;align-items:baseline}
+.owed strong{font-family:var(--display);font-size:2.6rem;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.owed span{color:var(--muted)}
+.ruler{width:100%;overflow-x:auto}
+.ruler svg{display:block;width:100%;min-width:480px;height:auto}
+.ruler text{font-family:var(--body);font-size:12px;fill:var(--muted)}
+.ruler .t-late{fill:var(--late);font-weight:600}
+.note{border-left:4px solid var(--wait);background:var(--wait-soft);color:var(--ink);padding:10px 14px;border-radius:0 8px 8px 0;font-size:.95rem}
+.note.info{border-left-color:var(--accent);background:var(--paper)}
+.sec h3{font-size:1.1rem;margin-bottom:10px}
+.tablebox{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:500;color:var(--muted);font-size:.85rem}
+th:first-child,td:first-child{text-align:left}
+tfoot td{font-weight:600;border-bottom:0}
+tfoot tr.sum td{border-top:2px solid var(--ink);font-size:1.05rem}
+.pays{display:flex;flex-direction:column;gap:8px}
+.payline{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.payline .field{flex:1 1 130px}
+.paid{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:6px 0}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:st}
+.steps li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;counter-increment:st}
+.steps li::before{content:counter(st);width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-weight:600;font-size:.9rem}
+.steps li.done::before{background:var(--ok);border-color:var(--ok);color:var(--surface);content:"✓"}
+.steps .sub{display:block;color:var(--muted);font-size:.85rem}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tabs button{border-radius:999px}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.field textarea.letter{width:100%;min-height:340px;background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:16px;font-family:var(--body);font-size:.95rem;line-height:1.55;resize:vertical;color:var(--ink)}
+.lacts{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:10px}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:.95rem}
+.check input{width:20px;height:20px;margin-top:2px;accent-color:var(--accent)}
+.toast{color:var(--ok);font-weight:600}
+.empty{background:var(--surface);border:1.5px dashed var(--line);border-radius:14px;padding:36px 22px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.empty h2{font-size:1.5rem}
+.empty p{margin:0;max-width:56ch;color:var(--muted)}
+dialog{border:0;border-radius:14px;padding:0;background:var(--surface);color:var(--ink);width:min(560px,calc(100vw - 24px));max-height:calc(100% - 24px)}
+dialog::backdrop{background:rgba(10,12,30,.55)}
+dialog form,dialog .dbody{padding:22px;display:flex;flex-direction:column;gap:14px}
+dialog h2{font-size:1.4rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dacts{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+footer{color:var(--muted);font-size:.85rem;max-width:80ch}
+footer a{color:inherit}
+@media (max-width:860px){
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .summary{grid-template-columns:1fr 1fr}
+  .summary .grand{grid-column:1/-1;border-bottom:1.5px solid var(--line)}
+  .summary>div:nth-child(2){border-left:0}
+  .summary>div:nth-child(4){grid-column:1/-1;border-left:0;border-top:1.5px solid var(--line)}
+}
+@media (max-width:860px){.backlist{display:inline-block;align-self:flex-start}}
+@media (max-width:480px){
+  table{font-size:.82rem}th,td{padding:7px 5px}td:first-child{white-space:normal}
+ 
+  .brand h1{font-size:2rem}.summary .grand dd{font-size:1.9rem}.owed strong{font-size:2.1rem}
+  .detail{padding:16px}.two{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){.btn,.row{transition:border-color .12s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Sesenta</h1>
+      <p>Lo que te deben por cada factura vencida, con sus intereses.</p>
+    </div>
+    <div class="tools">
+      <label class="field" for="asof">Calcular a fecha
+        <input type="date" id="asof">
+      </label>
+      <button class="btn" id="btn-profile" type="button">Mis datos</button>
+      <button class="btn" id="btn-rates" type="button">Tipos del BOE</button>
+      <button class="btn" id="btn-backup" type="button">Copia de seguridad</button>
+    </div>
+  </header>
+
+  <div id="banner"></div>
+
+  <dl class="summary" id="summary" aria-live="polite"></dl>
+
+  <main class="cols" id="cols">
+    <section aria-labelledby="h-list" id="listsec">
+      <div class="listhead">
+        <h2 id="h-list">Tus facturas</h2>
+        <button class="btn primary" id="btn-add" type="button">Añadir factura</button>
+      </div>
+      <ul class="list" id="list"></ul>
+    </section>
+    <section id="detail" aria-live="polite"></section>
+  </main>
+
+  <footer>
+    <p>Sesenta calcula con la Ley 3/2004 y los tipos que publica el BOE cada semestre. Es una herramienta de cálculo y redacción con modelos de carta, no asesoramiento jurídico: antes de demandar, consulta a un abogado. Tus facturas se guardan solo en este navegador.</p>
+  </footer>
+</div>
+
+<dialog id="dlg-inv" aria-labelledby="dlg-inv-t">
+  <form id="form-inv" novalidate>
+    <h2 id="dlg-inv-t">Añadir factura</h2>
+    <label class="field" for="f-client">Cliente
+      <input id="f-client" autocomplete="off" maxlength="120"><span class="err" data-err="client" role="alert"></span>
+    </label>
+    <div class="two">
+      <label class="field" for="f-nif">NIF del cliente (opcional)
+        <input id="f-nif" autocomplete="off" maxlength="20">
+      </label>
+      <label class="field" for="f-number">Número de factura (opcional)
+        <input id="f-number" autocomplete="off" maxlength="40">
+      </label>
+    </div>
+    <div class="two">
+      <label class="field" for="f-amount">Importe que debían ingresarte
+        <input id="f-amount" inputmode="decimal" placeholder="1.850,00" autocomplete="off"><small>El «total a pagar» de la factura: base más IVA, menos la retención de IRPF si la lleva.</small><span class="err" data-err="amount" role="alert"></span>
+      </label>
+      <label class="field" for="f-delivered">Fecha de entrega del trabajo
+        <input id="f-delivered" type="date"><small>El plazo cuenta desde que entregaste, aunque facturaras antes. Si no la recuerdas, usa la fecha de la factura.</small><span class="err" data-err="delivered" role="alert"></span>
+      </label>
+    </div>
+    <label class="field" for="f-term">Plazo de pago pactado, en días
+      <input id="f-term" inputmode="numeric" placeholder="30"><small>Sin pacto, la ley fija 30 días. Aunque el contrato diga más, el máximo legal son 60.</small><span class="err" data-err="term" role="alert"></span>
+    </label>
+    <label class="field" for="f-kind">Mi cliente es
+      <select id="f-kind"><option value="b2b">Una empresa o un autónomo</option><option value="admin">Una Administración pública</option><option value="particular">Un particular</option></select><small>Sesenta calcula intereses solo entre empresas y autónomos.</small>
+    </label>
+    <div class="dacts">
+      <button class="btn" type="button" data-close>Cancelar</button>
+      <button class="btn primary" type="submit" id="f-submit">Guardar factura</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-profile" aria-labelledby="dlg-profile-t">
+  <form id="form-profile">
+    <h2 id="dlg-profile-t">Mis datos</h2>
+    <p style="margin:0;color:var(--muted)">Aparecen en la firma de las cartas y en los datos de pago.</p>
+    <label class="field" for="p-name">Nombre o razón social<input id="p-name" maxlength="120" autocomplete="name"></label>
+    <div class="two">
+      <label class="field" for="p-nif">NIF<input id="p-nif" maxlength="20" autocomplete="off"><span class="err" id="p-nif-err" role="alert"></span></label>
+      <label class="field" for="p-email">Correo de contacto<input id="p-email" type="email" maxlength="120" autocomplete="email"></label>
+    </div>
+    <label class="field" for="p-address">Dirección<input id="p-address" maxlength="160" autocomplete="street-address"></label>
+    <label class="field" for="p-iban">IBAN para el pago<input id="p-iban" maxlength="40" autocomplete="off" placeholder="ES00 0000 0000 0000 0000 0000"><span class="err" id="p-iban-err" role="alert"></span></label>
+    <div class="dacts">
+      <button class="btn" type="button" data-close>Cancelar</button>
+      <button class="btn primary" type="submit">Guardar mis datos</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-rates" aria-labelledby="dlg-rates-t">
+  <div class="dbody">
+    <h2 id="dlg-rates-t">Tipos del BOE</h2>
+    <p style="margin:0;color:var(--muted)">Tipo legal de interés de demora: el del Banco Central Europeo más 8 puntos. Se publica en el BOE a finales de junio y de diciembre. Comprueba la <a href="https://clientebancario.bde.es/pcb/es/menu-horizontal/podemosayudarte/tiposinteres/guia_textual/tiposinteresreferenciaotrostiposfrecuentes/tabla_tipos_interes_demora_operaciones_comerciales.html">tabla del Banco de España</a>.</p>
+    <div class="tablebox" style="max-height:240px;overflow-y:auto"><table id="rates-table"></table></div>
+    <form id="form-rate" class="payline" novalidate>
+      <label class="field" for="r-sem">Semestre nuevo<select id="r-sem"></select></label>
+      <label class="field" for="r-val">Tipo anual, en %<input id="r-val" inputmode="decimal" placeholder="10,40"></label>
+      <button class="btn" type="submit">Añadir tipo</button>
+    </form>
+    <span class="err" id="r-err" style="color:var(--late)"></span>
+    <div class="dacts"><button class="btn primary" type="button" data-close>Cerrar</button></div>
+  </div>
+</dialog>
+
+<dialog id="dlg-backup" aria-labelledby="dlg-backup-t">
+  <div class="dbody">
+    <h2 id="dlg-backup-t">Copia de seguridad</h2>
+    <p style="margin:0;color:var(--muted)">Tus facturas viven solo en este navegador. Copia este texto y guárdalo donde quieras. Para recuperarlas o pasarlas a otro dispositivo, pega el texto aquí y pulsa Restaurar. Restaurar sustituye las facturas que tengas ahora.</p>
+    <label class="field" for="b-text">Datos de Sesenta<textarea id="b-text" rows="7" spellcheck="false"></textarea></label>
+    <span id="b-msg" role="status"></span>
+    <div class="dacts">
+      <button class="btn" type="button" id="b-copy">Copiar al portapapeles</button>
+      <button class="btn" type="button" id="b-restore">Restaurar desde el texto</button>
+      <button class="btn primary" type="button" data-close>Cerrar</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+/* Sesenta · motor de cálculo. Funciones puras, sin DOM.
+   Ley 3/2004: interés de demora = tipo BCE + 8 puntos, publicado cada semestre en el BOE. */
+var Sesenta = (function () {
+  'use strict';
+  var DAY = 86400000;
+
+  // Tipo legal de interés de demora (% anual) por semestre natural.
+  // Fuente: tabla del Banco de España (Portal del Cliente Bancario) y BOE-A-2026-14327 para 2026-2.
+  var RATES = {
+    '2015-1': 8.05, '2015-2': 8.05, '2016-1': 8.05, '2016-2': 8.00,
+    '2017-1': 8.00, '2017-2': 8.00, '2018-1': 8.00, '2018-2': 8.00,
+    '2019-1': 8.00, '2019-2': 8.00, '2020-1': 8.00, '2020-2': 8.00,
+    '2021-1': 8.00, '2021-2': 8.00, '2022-1': 8.00, '2022-2': 8.00,
+    '2023-1': 10.50, '2023-2': 12.00, '2024-1': 12.50, '2024-2': 12.25,
+    '2025-1': 11.15, '2025-2': 10.15, '2026-1': 10.15, '2026-2': 10.40
+  };
+  var FIRST_YEAR = 2015;
+  var MAX_TERM = 60;      // art. 4.3: el plazo pactado no puede superar 60 días naturales
+  var DEFAULT_TERM = 30;  // art. 4.1: 30 días naturales si no hay pacto
+  var FIXED_COST = 40;    // art. 8.1: 40 € por factura
+
+  function toDay(iso) {
+    if (typeof iso !== 'string') return NaN;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    if (!m) return NaN;
+    var y = +m[1], mo = +m[2], d = +m[3];
+    var t = Date.UTC(y, mo - 1, d);
+    var dt = new Date(t);
+    if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d) return NaN;
+    return Math.round(t / DAY);
+  }
+  function toIso(day) {
+    var dt = new Date(day * DAY);
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return dt.getUTCFullYear() + '-' + p(dt.getUTCMonth() + 1) + '-' + p(dt.getUTCDate());
+  }
+  function addDays(iso, n) { return toIso(toDay(iso) + n); }
+  function semesterOf(day) {
+    var dt = new Date(day * DAY);
+    return dt.getUTCFullYear() + '-' + (dt.getUTCMonth() < 6 ? 1 : 2);
+  }
+  function lastKnown(rates) {
+    return Object.keys(rates).sort(function (a, b) { return a < b ? -1 : 1; }).pop();
+  }
+  // Devuelve {rate, provisional}. Si el semestre aún no está publicado usa el último conocido.
+  function rateFor(day, rates) {
+    var key = semesterOf(day);
+    if (rates[key] != null) return { rate: rates[key], provisional: false, key: key };
+    var last = lastKnown(rates);
+    if (key > last) return { rate: rates[last], provisional: true, key: key };
+    return { rate: NaN, provisional: false, key: key };
+  }
+  function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
+
+  // "1.850,50" · "1850.5" · "1 850,5 €" -> 1850.5 ; NaN si no es un importe.
+  function parseEuro(s) {
+    if (typeof s === 'number') return s;
+    if (typeof s !== 'string') return NaN;
+    var t = s.replace(/[€\s ]/g, '');
+    if (!t) return NaN;
+    var lc = t.lastIndexOf(','), lp = t.lastIndexOf('.');
+    if (lc >= 0 && lp >= 0) {
+      if (lc > lp) t = t.replace(/\./g, '').replace(',', '.');   // 1.234,50
+      else t = t.replace(/,/g, '');                              // 1,234.50
+    } else if (lc >= 0) {
+      if (t.indexOf(',') !== lc) return NaN;                     // 1,234,567 es ambiguo
+      t = t.replace(',', '.');
+    } else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+    if (!/^\d+(\.\d+)?$/.test(t)) return NaN;
+    return parseFloat(t);
+  }
+
+  function dueDate(inv) {
+    var term = inv.term == null || inv.term === '' ? DEFAULT_TERM : +inv.term;
+    var eff = Math.min(term, MAX_TERM);
+    return { iso: addDays(inv.delivered, eff), term: term, effective: eff, capped: term > MAX_TERM };
+  }
+
+  function validate(inv, todayIso) {
+    var e = {};
+    if (!inv.client || !String(inv.client).trim()) e.client = 'Escribe el nombre del cliente.';
+    var amt = parseEuro(inv.amount);
+    if (!(amt > 0)) e.amount = 'Escribe el importe total de la factura, con IVA. Ejemplo: 1.850,00';
+    else if (amt > 10000000) e.amount = 'El importe máximo es 10.000.000 €.';
+    var d = toDay(inv.delivered);
+    if (isNaN(d)) e.delivered = 'Elige la fecha de entrega o de la factura.';
+    else if (new Date(d * DAY).getUTCFullYear() < FIRST_YEAR) e.delivered = 'Sesenta calcula facturas desde 2015. Las anteriores están casi con seguridad prescritas.';
+    else if (todayIso && d > toDay(todayIso) + 366) e.delivered = 'La fecha está a más de un año vista. Revísala.';
+    var term = inv.term == null || inv.term === '' ? DEFAULT_TERM : +inv.term;
+    if (!(term >= 0 && term <= 365) || Math.floor(term) !== term) e.term = 'El plazo son días enteros, entre 0 y 365.';
+    var paid = 0;
+    (inv.payments || []).forEach(function (p, i) {
+      var pa = parseEuro(p.amount), pd = toDay(p.date);
+      if (!(pa > 0)) e['pay' + i] = 'Importe del pago no válido.';
+      else if (isNaN(pd)) e['pay' + i] = 'Fecha del pago no válida.';
+      else if (!isNaN(d) && pd < d - 366) e['pay' + i] = 'El pago es muy anterior a la entrega. Revisa la fecha.';
+      else paid += pa;
+    });
+    if (amt > 0 && round2(paid) > round2(amt)) e.payments = 'Los pagos suman más que la factura.';
+    return e;
+  }
+
+  /* Calcula la deuda de una factura a una fecha.
+     - El interés corre desde el día siguiente al vencimiento (art. 5), sin necesidad de aviso.
+     - Interés simple, base 365, con el tipo de cada semestre.
+     - Los pagos parciales reducen el principal (criterio prudente para el acreedor). */
+  function compute(inv, asOfIso, rates) {
+    rates = rates || RATES;
+    var amount = round2(parseEuro(inv.amount));
+    var due = dueDate(inv);
+    var dueDay = toDay(due.iso), asOf = toDay(asOfIso);
+    var pays = (inv.payments || []).map(function (p) {
+      return { day: toDay(p.date), amount: round2(parseEuro(p.amount)) };
+    }).filter(function (p) { return p.amount > 0 && !isNaN(p.day); })
+      .sort(function (a, b) { return a.day - b.day; });
+
+    var res = {
+      amount: amount, due: due.iso, term: due.term, effectiveTerm: due.effective, capped: due.capped,
+      applies: inv.b2b !== false, segments: [], interest: 0, fixed: 0, daily: 0,
+      daysLate: 0, provisional: false, outstanding: amount, paidTotal: 0, status: 'pendiente'
+    };
+    pays.forEach(function (p) { if (p.day <= asOf) res.paidTotal = round2(res.paidTotal + p.amount); });
+    res.outstanding = round2(Math.max(0, amount - res.paidTotal));
+
+    var outAtDue = amount;
+    pays.forEach(function (p) { if (p.day <= dueDay) outAtDue = round2(outAtDue - p.amount); });
+    var late = asOf > dueDay && outAtDue > 0.004;
+
+    if (asOf <= dueDay) res.status = res.outstanding <= 0.004 ? 'cobrada' : 'en-plazo';
+    else if (!late) res.status = 'cobrada';
+    else res.status = res.outstanding <= 0.004 ? 'cobrada-tarde' : 'vencida';
+    res.daysToDue = dueDay - asOf;
+
+    if (!late || !res.applies) {
+      if (late) res.daysLate = asOf - dueDay;
+      res.total = res.outstanding;
+      return res;
+    }
+
+    // Recorre día a día: cada día devenga sobre lo pendiente al empezar ese día.
+    var pi = 0, out = amount, seg = null, lastLateDay = dueDay;
+    while (pi < pays.length && pays[pi].day <= dueDay) { out = round2(out - pays[pi].amount); pi++; }
+    for (var d = dueDay + 1; d <= asOf; d++) {
+      while (pi < pays.length && pays[pi].day < d) { out = round2(out - pays[pi].amount); pi++; }
+      if (out <= 0.004) break;
+      var r = rateFor(d, rates);
+      if (isNaN(r.rate)) continue;
+      if (r.provisional) res.provisional = true;
+      if (!seg || seg.key !== r.key || seg.base !== out) {
+        seg = { key: r.key, from: toIso(d), to: toIso(d), days: 0, base: out, rate: r.rate, provisional: r.provisional, interest: 0 };
+        res.segments.push(seg);
+      }
+      seg.days++; seg.to = toIso(d);
+      lastLateDay = d;
+    }
+    var total = 0;
+    res.segments.forEach(function (s) {
+      s.interest = round2(s.base * s.rate / 100 * s.days / 365);
+      total += s.interest;
+    });
+    res.interest = round2(total);
+    res.fixed = FIXED_COST;
+    res.daysLate = lastLateDay - dueDay;
+    if (res.outstanding > 0.004) res.daily = round2(res.outstanding * rateFor(asOf, rates).rate / 100 / 365);
+    res.total = round2(res.outstanding + res.interest + res.fixed);
+    return res;
+  }
+
+  function summarize(list, asOfIso, rates) {
+    var s = { principal: 0, interest: 0, fixed: 0, total: 0, daily: 0, late: 0, count: list.length };
+    list.forEach(function (inv) {
+      var c = compute(inv, asOfIso, rates);
+      if (c.status === 'vencida' || c.status === 'cobrada-tarde') {
+        s.principal += c.outstanding; s.interest += c.interest; s.fixed += c.fixed; s.daily += c.daily; s.late++;
+      }
+    });
+    ['principal', 'interest', 'fixed', 'daily'].forEach(function (k) { s[k] = round2(s[k]); });
+    s.total = round2(s.principal + s.interest + s.fixed);
+    return s;
+  }
+
+  // Siguiente paso recomendado según lo ya enviado. Días de espera entre pasos: 7, 10, 30.
+  var STEPS = [
+    { id: 'recordatorio', label: 'Recordatorio amable', wait: 7 },
+    { id: 'formal', label: 'Reclamación formal', wait: 10 },
+    { id: 'negociacion', label: 'Propuesta de negociación', wait: 30 }
+  ];
+  function nextStep(inv, c, asOfIso) {
+    if (c.status === 'en-plazo') return { kind: 'en-plazo', step: null, date: c.due };
+    if (c.status === 'cobrada') return { kind: 'hecho', step: null, date: null };
+    if (!c.applies) return { kind: 'no-aplica', step: null, date: null };
+    var log = inv.log || {};
+    var asOf = toDay(asOfIso);
+    var first = c.status === 'cobrada-tarde' ? 1 : 0;   // ya cobrado: no tiene sentido el recordatorio
+    for (var i = STEPS.length - 1; i >= first; i--) {
+      var sent = log[STEPS[i].id];
+      if (sent) {
+        var ready = toDay(sent) + STEPS[i].wait;
+        if (i === STEPS.length - 1) {
+          return asOf >= ready ? { kind: 'abogado', step: null, date: toIso(ready) } : { kind: 'esperar', step: null, date: toIso(ready) };
+        }
+        return asOf >= ready ? { kind: 'enviar', step: STEPS[i + 1].id, date: null } : { kind: 'esperar', step: STEPS[i + 1].id, date: toIso(ready) };
+      }
+    }
+    return { kind: 'enviar', step: STEPS[first].id, date: null };
+  }
+
+  return {
+    RATES: RATES, STEPS: STEPS, MAX_TERM: MAX_TERM, DEFAULT_TERM: DEFAULT_TERM, FIXED_COST: FIXED_COST,
+    toDay: toDay, toIso: toIso, addDays: addDays, semesterOf: semesterOf, rateFor: rateFor,
+    parseEuro: parseEuro, round2: round2, dueDate: dueDate, validate: validate,
+    compute: compute, summarize: summarize, nextStep: nextStep, lastKnown: lastKnown
+  };
+})();
+
+
+</script>
+<script>
+(function(){
+'use strict';
+var S = Sesenta, KEY = 'sesenta.v1';
+var $ = function(id){ return document.getElementById(id); };
+var eur = new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',useGrouping:'always'});
+var MONTHS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function fdate(iso){ var p = iso.split('-'); return (+p[2]) + ' de ' + MONTHS[+p[1]-1] + ' de ' + p[0]; }
+function sdate(iso){ var p = iso.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+function pct(n){ return n.toFixed(2).replace('.',',') + ' %'; }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function todayIso(){ var d = new Date(); return S.toIso(Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())/86400000)); }
+function uid(){ return 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+var STATUS = {'vencida':'Vencida','en-plazo':'En plazo','cobrada':'Cobrada','cobrada-tarde':'Cobrada tarde'};
+
+var TODAY = todayIso();
+var state = { invoices: [], profile: {}, rates: {}, examples: false, selected: null };
+var ui = { asOf: TODAY, tone: 'recordatorio', waiver: true, editing: null, confirmDelete: false, storageOk: true, drafts: {}, toast: '', restoreArmed: false };
+function realDay(){ return ui.asOf < TODAY ? ui.asOf : TODAY; }
+
+function examples(){
+  var t = TODAY;
+  return [
+    { id: uid(), client: 'Agencia Nómada S.L.', nif: 'B00000000', number: '2026-031', amount: '3.200,00', delivered: S.addDays(t,-125), term: 30, b2b: true, payments: [], log: { recordatorio: S.addDays(t,-20) } },
+    { id: uid(), client: 'Talleres Benimar S.L.', nif: '', number: '2026-038', amount: '1.850,00', delivered: S.addDays(t,-77), term: 30, b2b: true, payments: [], log: {} },
+    { id: uid(), client: 'Grupo Portolà S.A.', nif: '', number: '2026-022', amount: '4.840,00', delivered: S.addDays(t,-150), term: 90, b2b: true, payments: [{ date: S.addDays(t,-40), amount: '2.000,00' }], log: {} },
+    { id: uid(), client: 'Librería Ultramar', nif: '', number: '2026-044', amount: '960,00', delivered: S.addDays(t,-10), term: 30, b2b: true, payments: [], log: {} }
+  ];
+}
+function load(){
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) { var d = JSON.parse(raw); if (d && Array.isArray(d.invoices)) { state = normalize(d); return; } }
+  } catch (e) { ui.storageOk = false; }
+  state.invoices = examples(); state.examples = true; state.selected = state.invoices[0].id;
+}
+function normalize(d){
+  var out = { invoices: [], profile: d.profile && typeof d.profile === 'object' ? d.profile : {}, rates: {}, examples: !!d.examples, selected: d.selected || null };
+  Object.keys(d.rates || {}).forEach(function(k){ if (/^\d{4}-[12]$/.test(k) && d.rates[k] >= 0 && d.rates[k] <= 40) out.rates[k] = +d.rates[k]; });
+  d.invoices.forEach(function(v){
+    if (!v || typeof v !== 'object') return;
+    var inv = { id: String(v.id || uid()), client: String(v.client || ''), nif: String(v.nif || ''), number: String(v.number || ''), amount: String(v.amount || ''), delivered: String(v.delivered || ''), term: v.term === '' || v.term == null ? 30 : +v.term, kind: v.kind === 'admin' || v.kind === 'particular' ? v.kind : (v.b2b === false ? 'particular' : 'b2b'), payments: [], log: {} };
+    inv.b2b = inv.kind === 'b2b';
+    (Array.isArray(v.payments) ? v.payments : []).forEach(function(p){ if (p && !isNaN(S.toDay(p.date)) && S.parseEuro(String(p.amount)) > 0) inv.payments.push({ date: p.date, amount: String(p.amount) }); });
+    S.STEPS.forEach(function(s){ if (v.log && !isNaN(S.toDay(v.log[s.id]))) inv.log[s.id] = v.log[s.id]; });
+    if (Object.keys(S.validate(inv)).length === 0) out.invoices.push(inv);
+  });
+  return out;
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(state)); ui.storageOk = true; } catch (e) { ui.storageOk = false; }
+}
+function rates(){ var r = {}; Object.keys(S.RATES).forEach(function(k){ r[k] = S.RATES[k]; }); Object.keys(state.rates).forEach(function(k){ if (r[k] == null) r[k] = state.rates[k]; }); return r; }
+function current(){ for (var i=0;i<state.invoices.length;i++) if (state.invoices[i].id === state.selected) return state.invoices[i]; return null; }
+
+/* ---------- Cartas ---------- */
+function signature(){
+  var p = state.profile, l = [p.name || '[Tu nombre]'];
+  if (p.nif) l.push('NIF ' + p.nif);
+  if (p.address) l.push(p.address);
+  if (p.email) l.push(p.email);
+  return l.join('\n');
+}
+function payData(inv){
+  var p = state.profile;
+  return 'Cuenta para el pago: ' + (p.iban || '[tu IBAN]') + (inv.number ? '\nConcepto: factura ' + inv.number : '');
+}
+function invRef(inv){ return inv.number ? 'la factura n.º ' + inv.number : 'mi factura de ' + eur.format(S.round2(S.parseEuro(inv.amount))); }
+function subjRef(inv){ return inv.number ? 'Factura ' + inv.number : 'Factura de ' + eur.format(S.round2(S.parseEuro(inv.amount))); }
+function cap(t){ return t.replace(/^./, function(ch){ return ch.toUpperCase(); }); }
+function breakdownText(c){
+  return c.segments.map(function(s){
+    return '   · Del ' + sdate(s.from) + ' al ' + sdate(s.to) + ': ' + s.days + ' días al ' + pct(s.rate) + ' sobre ' + eur.format(s.base) + ' = ' + eur.format(s.interest);
+  }).join('\n');
+}
+function letter(tone, inv, c){
+  var asOf = ui.asOf, paidAll = c.outstanding <= 0.004, paidPart = c.paidTotal > 0 && !paidAll;
+  var pend = paidPart ? ' Tras los pagos recibidos, quedan pendientes ' + eur.format(c.outstanding) + '.' : '';
+  var who = inv.client + (inv.nif ? ' (NIF ' + inv.nif + ')' : '');
+  var capNote = c.capped ? ' Aunque acordamos un plazo de ' + c.term + ' días, el artículo 4 de la Ley 3/2004 limita el plazo de pago a 60 días naturales, por lo que la fecha de vencimiento a efectos legales es esa.' : '';
+  if (tone === 'recordatorio') {
+    return 'Asunto: ' + subjRef(inv) + ' pendiente de pago\n\n' +
+      'Hola:\n\n' +
+      'Te escribo por ' + invRef(inv) + (inv.number ? ', de ' + eur.format(c.amount) + ',' : ',') + ' que venció el ' + fdate(c.due) + '. A día de hoy no me consta el pago' + (paidPart ? ' completo.' + pend : '.') + '\n\n' +
+      'Puede que se haya traspapelado. ¿Me confirmas en qué fecha está previsto el pago? Si ya lo habéis hecho, envíame el justificante y lo doy por cerrado.\n\n' +
+      payData(inv) + '\n\n' +
+      'Gracias,\n\n' + signature();
+  }
+  var detail = (paidAll ? '' : 'Principal pendiente: ' + eur.format(c.outstanding) + '\n') +
+    'Intereses de demora (art. 7 de la Ley 3/2004), ' + c.daysLate + ' días: ' + eur.format(c.interest) + '\n' + breakdownText(c) + '\n' +
+    'Indemnización por costes de cobro (art. 8 de la Ley 3/2004): ' + eur.format(c.fixed) + '\n' +
+    'Total a ' + fdate(asOf) + ': ' + eur.format(c.total);
+  var grows = c.daily >= 1 ? 'Mientras siga pendiente, esta cantidad aumenta ' + eur.format(c.daily) + ' al día.\n\n' : '';
+  var prov = c.provisional ? '\n(El tipo del semestre en curso aún no está publicado en el BOE; se ha aplicado provisionalmente el último conocido.)' : '';
+  var facts = paidAll
+    ? cap(invRef(inv)) + (inv.number ? ', por importe de ' + eur.format(c.amount) + ',' : '') + ' corresponde a trabajos entregados el ' + fdate(inv.delivered) + '. Venció el ' + fdate(c.due) + ' y se pagó con ' + c.daysLate + ' días de retraso.' + capNote
+    : cap(invRef(inv)) + (inv.number ? ', por importe de ' + eur.format(c.amount) + ',' : '') + ' corresponde a trabajos entregados el ' + fdate(inv.delivered) + '. Venció el ' + fdate(c.due) + ' y sigue pendiente de pago.' + pend + capNote;
+  if (tone === 'formal') {
+    var lim = S.addDays(asOf, 7);
+    var waive = ui.waiver && !paidAll ? 'Quiero resolverlo de la forma más sencilla: si recibo el principal de ' + eur.format(c.outstanding) + ' antes del ' + fdate(lim) + ', renuncio a los intereses y a la indemnización.\n\n' : '';
+    return 'Asunto: Reclamación de pago. ' + subjRef(inv) + '\n\n' +
+      'A la atención de ' + who + '\n' + fdate(asOf) + '\n\n' +
+      facts + '\n\n' +
+      'La Ley 3/2004, de 29 de diciembre, de medidas de lucha contra la morosidad en las operaciones comerciales, establece que el retraso en el pago genera intereses de demora de forma automática, sin necesidad de aviso previo, y una indemnización fija por costes de cobro. A fecha de hoy ' + (paidAll ? 'queda pendiente lo siguiente' : 'la deuda es la siguiente') + ':\n\n' +
+      detail + prov + '\n\n' + grows +
+      waive +
+      'Les pido que realicen el pago en un plazo de 7 días naturales.\n\n' + payData(inv) + '\n\n' +
+      'Si prefieren proponer otra fecha o tienen alguna objeción a la factura, les agradeceré que me lo comuniquen por escrito en ese mismo plazo.\n\n' +
+      'Atentamente,\n\n' + signature();
+  }
+  var d30 = S.addDays(asOf, 30), d60 = S.addDays(asOf, 60);
+  var half = S.round2(c.total / 2), rest = S.round2(c.total - half);
+  var optA = ui.waiver && !paidAll
+    ? 'Opción A. Pago único del principal, ' + eur.format(c.outstanding) + ', antes del ' + fdate(d30) + '. En ese caso renuncio a los intereses y a la indemnización.'
+    : 'Opción A. Pago único de ' + eur.format(c.total) + ' antes del ' + fdate(d30) + '.';
+  return 'Asunto: Solicitud de negociación previa a la vía judicial. ' + subjRef(inv) + '\n\n' +
+    'A la atención de ' + who + '\n' + fdate(asOf) + '\n\n' +
+    'Me dirijo a ustedes para intentar resolver de mutuo acuerdo, mediante negociación directa y antes de acudir a los tribunales, la deuda que mantienen conmigo. Este escrito es una solicitud de negociación a los efectos de la Ley Orgánica 1/2025, de 2 de enero. No es una oferta vinculante confidencial de las reguladas en su artículo 17.\n\n' +
+    'Objeto de la controversia\n' +
+    facts + ' Conforme a la Ley 3/2004, ' + (paidAll ? 'queda pendiente' : 'la deuda a día de hoy es') + ':\n\n' +
+    detail + prov + '\n\n' +
+    'Mi propuesta para empezar a negociar\n' + optA + '\n' +
+    'Opción B. Pago en dos plazos del total de ' + eur.format(c.total) + ': ' + eur.format(half) + ' antes del ' + fdate(d30) + ' y ' + eur.format(rest) + ' antes del ' + fdate(d60) + '.\n\n' +
+    'Escucharé con gusto cualquier otra propuesta, y les propongo hablarlo por teléfono o videollamada en la fecha que les venga bien. Pueden responder por escrito a ' + (state.profile.email || '[tu correo]') + (state.profile.address ? ' o a ' + state.profile.address : '') + '.\n\n' +
+    payData(inv) + '\n\n' +
+    'Si transcurren treinta días naturales desde la recepción de este escrito sin respuesta por escrito y sin que hayamos mantenido un primer contacto para negociar, entenderé terminado el intento de negociación sin acuerdo.\n\n' +
+    'Atentamente,\n\n' + signature();
+}
+function stepText(n, short){
+  if (n.kind === 'enviar') { var lab = S.STEPS.filter(function(x){ return x.id === n.step; })[0].label.toLowerCase(); return (short ? 'Sugerido: ' : 'Siguiente paso sugerido: ') + lab; }
+  if (n.kind === 'esperar') return 'Espera respuesta hasta el ' + sdate(n.date);
+  if (n.kind === 'abogado') return 'Sin respuesta en 30 días: valora la vía judicial';
+  return '';
+}
+function draftKey(inv){ return inv.id + '|' + ui.tone; }
+
+/* ---------- Pintado ---------- */
+function renderBanner(){
+  var h = '';
+  if (state.examples) h += '<div class="banner"><span>Estas cuatro facturas son ejemplos inventados para que veas cómo funciona.</span><button class="btn small" type="button" data-act="clear-examples">Borrar ejemplos y empezar</button></div>';
+  if (!ui.storageOk) h += '<div class="banner" role="alert"><span>Este navegador no deja guardar datos aquí. Lo que añadas se perderá al cerrar: usa la copia de seguridad.</span></div>';
+  if (ui.asOf !== TODAY) h += '<div class="banner"><span>Estás calculando a ' + fdate(ui.asOf) + ', no a hoy.</span><button class="btn small" type="button" data-act="today">Volver a hoy</button></div>';
+  $('banner').innerHTML = h;
+}
+function renderSummary(){
+  var s = S.summarize(state.invoices, ui.asOf, rates());
+  $('summary').innerHTML =
+    '<div class="grand"><dt>Total que puedes reclamar</dt><dd><span>' + eur.format(s.total) + '</span></dd><span class="hint">' +
+      (s.late ? s.late + (s.late === 1 ? ' factura vencida' : ' facturas vencidas') + (s.daily > 0 ? '. Crece ' + eur.format(s.daily) + ' al día.' : '.') : 'No tienes facturas vencidas.') + '</span></div>' +
+    '<div><dt>Principal pendiente</dt><dd>' + eur.format(s.principal) + '</dd></div>' +
+    '<div><dt>Intereses de demora</dt><dd>' + eur.format(s.interest) + '</dd></div>' +
+    '<div><dt>Indemnización de 40 € por factura</dt><dd>' + eur.format(s.fixed) + '</dd></div>';
+}
+function renderList(){
+  var r = rates();
+  var items = state.invoices.map(function(inv){ return { inv: inv, c: S.compute(inv, ui.asOf, r) }; });
+  var order = {'vencida':0,'cobrada-tarde':1,'en-plazo':2,'cobrada':3};
+  items.sort(function(a,b){ return (order[a.c.status]-order[b.c.status]) || (b.c.daysLate-a.c.daysLate); });
+  $('list').innerHTML = items.map(function(it){
+    var inv = it.inv, c = it.c, n = S.nextStep(inv, c, ui.asOf);
+    var meta = !c.applies && c.status === 'vencida' ? (inv.kind === 'admin' ? 'Administración: no cubierta' : 'Cliente particular: sin intereses')
+      : c.status === 'vencida' ? c.daysLate + (c.daysLate === 1 ? ' día' : ' días') + ' de retraso'
+      : c.status === 'en-plazo' ? 'Vence el ' + sdate(c.due)
+      : c.status === 'cobrada-tarde' ? 'Te deben intereses y 40 €' : 'Sin nada pendiente';
+    var todo = n.kind === 'enviar' || n.kind === 'abogado' ? '<span class="todo">' + esc(stepText(n, true)) + '</span>' : '';
+    return '<li><button type="button" class="row s-' + c.status + '" data-sel="' + esc(inv.id) + '"' + (inv.id === state.selected ? ' aria-current="true"' : '') + '>' +
+      '<span class="who">' + esc(inv.client) + '</span><span class="amt">' + eur.format(c.total) + '</span>' +
+      '<span class="meta"><span><span class="pill ' + c.status + '">' + STATUS[c.status] + '</span> ' + esc(meta) + '</span>' + todo + '</span></button></li>';
+  }).join('');
+}
+function ruler(inv, c){
+  var W = 640, L = 14, R = 14, y = 44;
+  var d0 = S.toDay(inv.delivered), dd = S.toDay(c.due), da = S.toDay(ui.asOf);
+  var end = Math.max(da, dd) , span = Math.max(1, end - d0);
+  var x = function(d){ return L + (W - L - R) * (d - d0) / span; };
+  var step = span <= 120 ? 10 : span <= 400 ? 30 : span <= 1500 ? 90 : 365, ticks = '';
+  for (var d = d0; d <= end; d += step) ticks += '<line x1="' + x(d).toFixed(1) + '" x2="' + x(d).toFixed(1) + '" y1="' + (y-5) + '" y2="' + (y+5) + '" stroke="var(--muted)" stroke-width="1"/>';
+  var late = da > dd && (c.status === 'vencida' || c.status === 'cobrada-tarde');
+  var lateEnd = late ? S.toDay(c.due) + c.daysLate : dd;
+  var g = '<rect x="' + x(d0).toFixed(1) + '" y="' + (y-3) + '" width="' + Math.max(0,x(Math.min(dd,end))-x(d0)).toFixed(1) + '" height="6" fill="var(--ok)" opacity=".55"/>';
+  if (late) g += '<rect x="' + x(dd).toFixed(1) + '" y="' + (y-7) + '" width="' + Math.max(2,x(lateEnd)-x(dd)).toFixed(1) + '" height="14" fill="var(--late)"/>';
+  if (da < dd) g += '<line x1="' + x(da).toFixed(1) + '" x2="' + x(da).toFixed(1) + '" y1="' + (y-12) + '" y2="' + (y+12) + '" stroke="var(--accent)" stroke-width="2"/>';
+  g += '<line x1="' + x(dd).toFixed(1) + '" x2="' + x(dd).toFixed(1) + '" y1="' + (y-14) + '" y2="' + (y+14) + '" stroke="var(--ink)" stroke-width="2"/>';
+  (inv.payments||[]).forEach(function(p){ var pd = S.toDay(p.date); if (pd >= d0 && pd <= end) g += '<circle cx="' + x(pd).toFixed(1) + '" cy="' + y + '" r="6" fill="var(--surface)" stroke="var(--ok)" stroke-width="3"/>'; });
+  var xd = x(dd), anchor = xd < 120 ? 'start' : xd > W - 120 ? 'end' : 'middle';
+  var endLabel = late ? (c.status === 'vencida' ? (ui.asOf === TODAY ? 'Hoy: ' : 'A ' + sdate(ui.asOf) + ': ') : 'Cobro: ') + c.daysLate + (c.daysLate === 1 ? ' día tarde' : ' días tarde') : (da < dd ? 'Faltan ' + (dd - da) + ' días' : '');
+  var t = '<text x="' + L + '" y="16">Entrega ' + sdate(inv.delivered) + '</text>' +
+    '<text x="' + xd.toFixed(1) + '" y="78" text-anchor="' + anchor + '">Vence ' + sdate(c.due) + ' (día ' + c.effectiveTerm + ')</text>' +
+    (endLabel ? '<text class="' + (late ? 't-late' : '') + '" x="' + (W - R) + '" y="16" text-anchor="end">' + endLabel + '</text>' : '');
+  var alt = 'Línea de tiempo: entrega el ' + fdate(inv.delivered) + ', vencimiento el ' + fdate(c.due) + (late ? ', ' + c.daysLate + ' días de retraso.' : '.');
+  return '<div class="ruler"><svg viewBox="0 0 ' + W + ' 88" role="img" aria-label="' + esc(alt) + '"><line x1="' + L + '" x2="' + (W-R) + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-width="2"/>' + ticks + g + t + '</svg></div>';
+}
+function renderDetail(){
+  var el = $('detail');
+  if (!state.invoices.length) {
+    $('cols').style.gridTemplateColumns = '1fr';
+    el.innerHTML = ''; $('list').innerHTML = '<li class="empty"><h2>Aún no hay facturas</h2><p>Añade una factura que no te hayan pagado. Con el importe, la fecha de entrega y el plazo pactado, Sesenta calcula los intereses, suma los 40 € que marca la ley y te prepara la carta.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-act="add">Añadir mi primera factura</button><button class="btn" type="button" data-act="load-examples">Ver un ejemplo</button></div></li>';
+    return;
+  }
+  $('cols').style.gridTemplateColumns = '';
+  var inv = current();
+  if (!inv) { state.selected = state.invoices[0].id; inv = state.invoices[0]; renderList(); }
+  var c = S.compute(inv, ui.asOf, rates());
+  var late = c.status === 'vencida' || c.status === 'cobrada-tarde';
+  if (c.status === 'cobrada-tarde' && ui.tone === 'recordatorio') ui.tone = 'formal';
+  var h = '<div class="detail"><button class="btn small quiet backlist" type="button" data-act="back">Volver a mis facturas</button>';
+  h += '<div class="dhead"><div><h2 tabindex="-1" id="dtitle">' + esc(inv.client) + '</h2><p>' + (inv.number ? 'Factura ' + esc(inv.number) + ' · ' : '') + eur.format(c.amount) + ' <span class="pill ' + c.status + '">' + STATUS[c.status] + '</span></p></div>' +
+    '<div class="acts"><button class="btn small" type="button" data-act="edit">Editar</button>' +
+    (ui.confirmDelete ? '<button class="btn small danger" type="button" data-act="delete-yes">Sí, eliminar</button><button class="btn small" type="button" data-act="delete-no">No</button>' : '<button class="btn small danger" type="button" data-act="delete">Eliminar</button>') + '</div></div>';
+
+  if (!c.applies) {
+    h += inv.kind === 'admin'
+      ? '<div class="note">Sesenta no cubre facturas a Administraciones públicas. Te deben intereses de demora igualmente, pero el plazo de pago y la forma de reclamar siguen la Ley de Contratos del Sector Público, y la negociación previa de la Ley Orgánica 1/2025 no se aplica. Consulta a un abogado o a tu gestoría.</div>'
+      : '<div class="note">Has indicado que este cliente es un particular. La Ley 3/2004 solo cubre operaciones entre empresas y autónomos, así que Sesenta no calcula intereses ni los 40 €. Puedes reclamar el principal de ' + eur.format(c.outstanding) + ' y, en su caso, el interés legal del dinero.</div>';
+  } else if (late) {
+    h += '<div class="owed"><strong class="num">' + eur.format(c.total) + '</strong><span>' + (c.status === 'vencida' ? 'es lo que te deben a ' + fdate(ui.asOf) + (c.daily > 0 ? '. Crece ' + eur.format(c.daily) + ' al día.' : '.') : 'te deben todavía por haber pagado tarde: intereses y 40 €.') + '</span></div>';
+  } else if (c.status === 'en-plazo') {
+    h += '<div class="note info">Esta factura aún está en plazo. Vence el ' + fdate(c.due) + ', dentro de ' + c.daysToDue + (c.daysToDue === 1 ? ' día' : ' días') + '. Desde el día siguiente empezará a generar intereses sin que tengas que avisar.</div>';
+  } else {
+    h += '<div class="note info">Cobrada dentro de plazo. No hay nada que reclamar.</div>';
+  }
+  h += ruler(inv, c);
+  if (c.capped) h += '<div class="note">Pactasteis ' + c.term + ' días, pero la ley no permite más de 60. Sesenta calcula el vencimiento en el día 60, el ' + fdate(c.due) + '. Hay quien sostiene que un pacto nulo devuelve el plazo a 30 días; 60 es la lectura más prudente.</div>';
+  if (c.provisional) h += '<div class="note">El BOE aún no ha publicado el tipo de algún semestre de este cálculo. Sesenta usa el último conocido; añade el nuevo en «Tipos del BOE» cuando salga.</div>';
+  if (late && S.toDay(ui.asOf) - S.toDay(c.due) > 912) h += '<div class="note">Esta factura venció hace más de dos años y medio. El plazo para reclamar honorarios profesionales es de tres años (art. 1967 del Código Civil) y el general, de cinco. Una reclamación por escrito con constancia de recepción interrumpe el plazo: no la dejes pasar y consulta a un abogado.</div>';
+
+  if (c.applies && late) {
+    h += '<div class="sec"><h3>De dónde sale la cifra</h3><div class="tablebox"><table><thead><tr><th>Tramo</th><th>Días</th><th>Tipo</th><th>Sobre</th><th>Interés</th></tr></thead><tbody>' +
+      c.segments.map(function(s){ return '<tr><td>' + sdate(s.from) + ' a ' + sdate(s.to) + '</td><td class="num">' + s.days + '</td><td class="num">' + pct(s.rate) + (s.provisional ? ' *' : '') + '</td><td class="num">' + eur.format(s.base) + '</td><td class="num">' + eur.format(s.interest) + '</td></tr>'; }).join('') +
+      '</tbody><tfoot><tr><td colspan="4">Intereses de demora, ' + c.daysLate + ' días</td><td class="num">' + eur.format(c.interest) + '</td></tr>' +
+      '<tr><td colspan="4">Indemnización fija por costes de cobro</td><td class="num">' + eur.format(c.fixed) + '</td></tr>' +
+      '<tr><td colspan="4">Principal pendiente</td><td class="num">' + eur.format(c.outstanding) + '</td></tr>' +
+      '<tr class="sum"><td colspan="4">Total</td><td class="num">' + eur.format(c.total) + '</td></tr></tfoot></table></div>' +
+      '<p style="color:var(--muted);font-size:.85rem;margin:8px 0 0">Interés simple: importe pendiente × tipo del semestre × días ÷ 365.' + (c.provisional ? ' * Tipo provisional.' : '') + '</p></div>';
+  }
+
+  h += '<div class="sec"><h3>Pagos recibidos</h3><div class="pays">';
+  if (inv.payments.length) h += inv.payments.map(function(p,i){ return '<div class="paid"><span>' + fdate(p.date) + '</span><span class="num"><strong>' + eur.format(S.parseEuro(p.amount)) + '</strong> <button class="btn small quiet" type="button" data-act="pay-del" data-i="' + i + '" aria-label="Quitar el pago del ' + fdate(p.date) + '">Quitar</button></span></div>'; }).join('');
+  else h += '<p style="margin:0;color:var(--muted)">Ninguno todavía. Si te pagan una parte, apúntala y el cálculo se ajusta.</p>';
+  h += '<p style="margin:0;color:var(--muted);font-size:.85rem">Sesenta resta cada pago del principal, que es la cuenta más favorable para tu cliente. El artículo 1173 del Código Civil te permite imputarlo antes a los intereses: si te interesa, coméntalo con un abogado.</p>';
+  h += '<form class="payline" id="form-pay" novalidate><label class="field" for="pay-date">Fecha del pago<input type="date" id="pay-date" value="' + realDay() + '" max="' + TODAY + '"></label><label class="field" for="pay-amount">Importe<input id="pay-amount" inputmode="decimal" placeholder="' + (c.outstanding > 0 ? esc(c.outstanding.toFixed(2).replace('.',',')) : '0,00') + '"></label><button class="btn" type="submit">Apuntar pago</button></form><span class="err" id="pay-err" style="color:var(--late);font-size:.85rem" role="alert"></span></div></div>';
+
+  if (c.applies && late) {
+    var n = S.nextStep(inv, c, ui.asOf);
+    var steps = S.STEPS.filter(function(s){ return !(c.status === 'cobrada-tarde' && s.id === 'recordatorio'); });
+    h += '<div class="sec"><h3>Seguimiento</h3><ol class="steps">' + steps.map(function(s){
+      var sent = inv.log[s.id], neg = s.id === 'negociacion';
+      var sub = sent ? (neg ? 'Recibida por tu cliente el ' : 'Enviado el ') + fdate(sent) : (n.step === s.id ? stepText(n) : (neg ? 'Márcala el día que conste que tu cliente la ha recibido' : 'Pendiente'));
+      return '<li class="' + (sent ? 'done' : '') + '"><span>' + s.label + '<span class="sub">' + esc(sub) + '</span></span>' +
+        (sent ? '<button class="btn small quiet" type="button" data-act="unmark" data-step="' + s.id + '">Desmarcar</button>' : '<button class="btn small" type="button" data-act="mark" data-step="' + s.id + '">' + (neg ? 'Marcar como recibida' : 'Marcar como enviado') + '</button>') + '</li>';
+    }).join('') + '</ol>' + (n.kind === 'esperar' && !n.step ? '<p style="color:var(--muted);font-size:.9rem;margin:10px 0 0">' + esc(stepText(n)) + '. Los 30 días cuentan desde la recepción, no desde el envío.</p>' : '') +
+      (n.kind === 'abogado' ? '<div class="note" style="margin-top:10px">Han pasado 30 días desde que tu cliente recibió la solicitud de negociación. Guarda el justificante de envío, el texto certificado y el acuse: es lo que te pedirán para demandar. Para reclamar más de 2.000 € en el juzgado necesitarás abogado y procurador, salvo en la petición inicial del proceso monitorio.</div>' : '') + '</div>';
+
+    var key = draftKey(inv), fresh = letter(ui.tone, inv, c), draft = ui.drafts[key], text = draft != null ? draft : fresh;
+    var holes = /\[tu IBAN\]|\[Tu nombre\]|\[tu correo\]/.test(text);
+    h += '<div class="sec"><h3>Tu carta</h3><div class="tabs" role="tablist" aria-label="Tono de la carta">' + steps.map(function(s){
+      return '<button class="btn small" type="button" role="tab" aria-selected="' + (ui.tone === s.id) + '" data-tone="' + s.id + '">' + s.label + '</button>'; }).join('') + '</div>';
+    if (ui.tone !== 'recordatorio' && c.outstanding > 0) h += '<label class="check" for="waiver" style="margin-bottom:10px"><input type="checkbox" id="waiver"' + (ui.waiver ? ' checked' : '') + '> <span>Ofrecer que renuncio a intereses y a los 40 € si me pagan el principal en plazo. Le da a tu cliente un motivo para pagar ya.</span></label>';
+    if (draft != null) h += '<div class="note info" style="margin-bottom:10px">Estás viendo tu versión retocada. Los cambios de cifras o de casilla no se aplican a este texto hasta que pulses «Restablecer texto».</div>';
+    if (holes) h += '<div class="note" style="margin-bottom:10px">A la carta le faltan tus datos y saldrían huecos entre corchetes. <button class="btn small" type="button" data-act="profile">Rellenar mis datos</button></div>';
+    h += '<label class="field" for="letter" style="font-size:.85rem">Léela entera y retócala antes de copiarla<textarea class="letter" id="letter" spellcheck="true">' + esc(text) + '</textarea></label>' +
+      '<div class="lacts"><button class="btn primary" type="button" data-act="copy">Copiar carta</button><button class="btn" type="button" data-act="reset-letter">Restablecer texto</button><span class="toast" id="toast" role="status">' + esc(ui.toast) + '</span></div>' +
+      (ui.tone === 'recordatorio' ? '<p style="color:var(--muted);font-size:.9rem;margin:10px 0 0">Envíala por correo electrónico. No menciona intereses: es el paso para quien se ha despistado.</p>'
+       : ui.tone === 'formal' ? '<p style="color:var(--muted);font-size:.9rem;margin:10px 0 0">Envíala por correo con acuse de lectura o por burofax. Adjunta la factura.</p>'
+       : '<div class="note" style="margin-top:10px">Envíala por un medio que acredite el contenido y la recepción, como un burofax con certificación de texto y acuse de recibo. Desde abril de 2025 hay que demostrar un intento de negociación antes de demandar, y no todos los juzgados lo valoran igual: algunos piden que haya habido una negociación real y no solo un requerimiento. Si piensas ir a juicio, enséñasela antes a un abogado.</div>') + '</div>';
+  }
+  h += '</div>';
+  el.innerHTML = h;
+}
+function autoTone(){ var inv = current(); if (!inv) return; var n = S.nextStep(inv, S.compute(inv, ui.asOf, rates()), ui.asOf); if (n.step) ui.tone = n.step; }
+function focusTitle(){ var t = $('dtitle'); if (t) t.focus({preventScroll:true}); }
+function render(){ renderBanner(); renderSummary(); renderList(); renderDetail(); }
+
+/* ---------- Diálogos ---------- */
+function openDlg(d){ if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open',''); }
+function closeDlg(d){ if (typeof d.close === 'function') d.close(); else d.removeAttribute('open'); }
+function openInvoice(inv){
+  ui.editing = inv ? inv.id : null;
+  $('dlg-inv-t').textContent = inv ? 'Editar factura' : 'Añadir factura';
+  $('f-client').value = inv ? inv.client : ''; $('f-nif').value = inv ? inv.nif : ''; $('f-number').value = inv ? inv.number : '';
+  $('f-amount').value = inv ? inv.amount : ''; $('f-delivered').value = inv ? inv.delivered : ''; $('f-term').value = inv ? inv.term : '';
+  $('f-kind').value = inv ? (inv.kind || 'b2b') : 'b2b';
+  showErrors({});
+  openDlg($('dlg-inv')); $('f-client').focus();
+}
+function showErrors(e){
+  var first = null;
+  document.querySelectorAll('#form-inv [data-err]').forEach(function(s){
+    var k = s.getAttribute('data-err'); s.textContent = e[k] || '';
+    var input = $('f-' + k); if (input) { input.setAttribute('aria-invalid', e[k] ? 'true' : 'false'); if (e[k] && !first) first = input; }
+  });
+  if (first) first.focus();
+}
+function renderRates(){
+  var r = rates(), keys = Object.keys(r).sort().reverse();
+  $('rates-table').innerHTML = '<thead><tr><th>Semestre</th><th>Tipo anual</th><th></th></tr></thead><tbody>' + keys.map(function(k){
+    var own = S.RATES[k] == null;
+    return '<tr><td>' + k.replace('-1',', 1.er semestre').replace('-2',', 2.º semestre') + '</td><td class="num">' + pct(r[k]) + '</td><td>' + (own ? '<button class="btn small quiet" type="button" data-rate-del="' + k + '">Quitar</button>' : '') + '</td></tr>'; }).join('') + '</tbody>';
+  var last = S.lastKnown(r), y = +last.slice(0,4), s = +last.slice(5), opts = '';
+  for (var i=0;i<4;i++){ if (s === 2){ y++; s = 1; } else s = 2; opts += '<option value="' + y + '-' + s + '">' + y + ', ' + (s === 1 ? '1.er' : '2.º') + ' semestre</option>'; }
+  $('r-sem').innerHTML = opts; $('r-err').textContent = '';
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener('click', function(ev){
+  var t = ev.target.closest('button'); if (!t) return;
+  if (t.hasAttribute('data-close')) { closeDlg(t.closest('dialog')); return; }
+  var sel = t.getAttribute('data-sel');
+  if (sel) { state.selected = sel; ui.confirmDelete = false; ui.toast = ''; autoTone(); save(); render(); if (window.matchMedia('(max-width:860px)').matches) $('detail').scrollIntoView({block:'start'}); focusTitle(); return; }
+  var tone = t.getAttribute('data-tone');
+  if (tone) { ui.tone = tone; ui.toast = ''; renderDetail(); var nt = document.querySelector('[data-tone="' + tone + '"]'); if (nt) nt.focus(); return; }
+  var rd = t.getAttribute('data-rate-del');
+  if (rd) { delete state.rates[rd]; save(); renderRates(); render(); return; }
+  var act = t.getAttribute('data-act'), inv = current();
+  if (!act) return;
+  if (act === 'add') openInvoice(null);
+  else if (act === 'edit' && inv) openInvoice(inv);
+  else if (act === 'delete') { ui.confirmDelete = true; renderDetail(); var y = document.querySelector('[data-act="delete-no"]'); if (y) y.focus(); }
+  else if (act === 'delete-no') { ui.confirmDelete = false; renderDetail(); var db = document.querySelector('[data-act="delete"]'); if (db) db.focus(); }
+  else if (act === 'back') { $('listsec').scrollIntoView({block:'start'}); var cur = document.querySelector('.row[aria-current="true"]'); if (cur) cur.focus({preventScroll:true}); }
+  else if (act === 'profile') { $('btn-profile').click(); }
+  else if (act === 'delete-yes' && inv) { state.invoices = state.invoices.filter(function(v){ return v.id !== inv.id; }); state.selected = state.invoices.length ? state.invoices[0].id : null; ui.confirmDelete = false; if (!state.invoices.length) state.examples = false; save(); render(); }
+  else if (act === 'clear-examples') { state.invoices = []; state.examples = false; state.selected = null; save(); render(); }
+  else if (act === 'load-examples') { state.invoices = examples(); state.examples = true; state.selected = state.invoices[0].id; save(); render(); }
+  else if (act === 'today') { ui.asOf = TODAY; $('asof').value = TODAY; render(); }
+  else if (act === 'mark' && inv) { var st1 = t.getAttribute('data-step'); inv.log[st1] = realDay(); save(); autoTone(); render(); var b1 = document.querySelector('[data-step="' + st1 + '"]'); if (b1) b1.focus(); }
+  else if (act === 'unmark' && inv) { var st2 = t.getAttribute('data-step'); delete inv.log[st2]; save(); render(); var b2 = document.querySelector('[data-step="' + st2 + '"]'); if (b2) b2.focus(); }
+  else if (act === 'pay-del' && inv) { inv.payments.splice(+t.getAttribute('data-i'),1); save(); render(); }
+  else if (act === 'reset-letter' && inv) { delete ui.drafts[draftKey(inv)]; ui.toast = ''; renderDetail(); var lt = $('letter'); if (lt) lt.focus(); }
+  else if (act === 'copy') {
+    var ta = $('letter'), done = function(ok){ ui.toast = ok ? (/\[tu IBAN\]|\[Tu nombre\]|\[tu correo\]/.test(ta.value) ? 'Copiada, pero aún tiene huecos entre corchetes.' : 'Carta copiada. Pégala en tu correo o en el burofax.') : 'No se pudo copiar. Selecciona el texto y cópialo a mano.'; $('toast').textContent = ui.toast; if (!ok) { ta.focus(); ta.select(); } };
+    try { navigator.clipboard.writeText(ta.value).then(function(){ done(true); }, function(){ done(false); }); } catch (e) { done(false); }
+  }
+});
+document.addEventListener('change', function(ev){
+  if (ev.target.id === 'waiver') { ui.waiver = ev.target.checked; ui.toast = ''; renderDetail(); var w = $('waiver'); if (w) w.focus(); }
+  if (ev.target.id === 'asof') { var v = ev.target.value; if (isNaN(S.toDay(v)) || +v.slice(0,4) < 2015 || +v.slice(0,4) > 2100) return; ui.asOf = v; render(); }
+});
+$('asof').addEventListener('blur', function(){ if ($('asof').value !== ui.asOf) $('asof').value = ui.asOf; });
+document.addEventListener('input', function(ev){
+  if (ev.target.id === 'letter') { var inv = current(); if (inv) ui.drafts[draftKey(inv)] = ev.target.value; }
+  if (ev.target.id === 'b-text') { ui.restoreArmed = false; $('b-restore').textContent = 'Restaurar desde el texto'; }
+});
+document.addEventListener('keydown', function(ev){
+  if (ev.key === 'Escape' && ui.confirmDelete) { ui.confirmDelete = false; renderDetail(); var db = document.querySelector('[data-act="delete"]'); if (db) db.focus(); }
+});
+document.addEventListener('submit', function(ev){
+  ev.preventDefault();
+  var id = ev.target.id;
+  if (id === 'form-inv') {
+    var termRaw = $('f-term').value.trim();
+    var data = { client: $('f-client').value.trim(), nif: $('f-nif').value.trim(), number: $('f-number').value.trim(), amount: $('f-amount').value.trim(), delivered: $('f-delivered').value, term: termRaw === '' ? 30 : Number(termRaw.replace(',','.')), kind: $('f-kind').value };
+    data.b2b = data.kind === 'b2b';
+    var old = ui.editing ? state.invoices.filter(function(v){ return v.id === ui.editing; })[0] : null;
+    data.payments = old ? old.payments : []; data.log = old ? old.log : {};
+    var e = S.validate(data, TODAY);
+    if (e.payments) e.amount = 'Ya has apuntado pagos por más de ese importe. Quita antes los pagos.';
+    if (Object.keys(e).length) { showErrors(e); return; }
+    if (old) { Object.keys(data).forEach(function(k){ old[k] = data[k]; }); }
+    else { data.id = uid(); if (state.examples) { state.invoices = []; state.examples = false; } state.invoices.push(data); state.selected = data.id; }
+    save(); closeDlg($('dlg-inv')); autoTone(); render(); focusTitle();
+  } else if (id === 'form-pay') {
+    var inv = current(); if (!inv) return;
+    var pd = $('pay-date').value, pa = $('pay-amount').value.trim(), err = '';
+    var c = S.compute(inv, '2100-01-01', rates());
+    var n = S.parseEuro(pa);
+    if (isNaN(S.toDay(pd))) err = 'Elige la fecha del pago.';
+    else if (S.toDay(pd) > S.toDay(TODAY)) err = 'La fecha del pago no puede ser posterior a hoy, ' + sdate(TODAY) + '.';
+    else if (!(n > 0)) err = 'Escribe el importe recibido. Ejemplo: 500,00';
+    else if (S.round2(n) > c.outstanding) err = 'Ese pago supera lo pendiente (' + eur.format(c.outstanding) + ').';
+    if (err) { $('pay-err').textContent = err; return; }
+    inv.payments.push({ date: pd, amount: pa }); inv.payments.sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+    save(); render();
+  } else if (id === 'form-profile') {
+    var nifv = $('p-nif').value.trim(), ibanv = $('p-iban').value.trim(), bad = false;
+    $('p-nif-err').textContent = ''; $('p-iban-err').textContent = '';
+    if (nifv && !/^[A-Za-z0-9]{8,10}$/.test(nifv.replace(/[\s-]/g,''))) { $('p-nif-err').textContent = 'Un NIF tiene 9 caracteres. Ejemplo: 12345678Z'; bad = true; }
+    if (ibanv && !/^[A-Za-z]{2}\d{2}[A-Za-z0-9]{11,30}$/.test(ibanv.replace(/\s/g,''))) { $('p-iban-err').textContent = 'Ese IBAN no tiene el formato correcto. Ejemplo: ES00 0000 0000 0000 0000 0000'; bad = true; }
+    if (bad) return;
+    state.profile = { name: $('p-name').value.trim(), nif: nifv, email: $('p-email').value.trim(), address: $('p-address').value.trim(), iban: ibanv };
+    save(); closeDlg($('dlg-profile')); render();
+  } else if (id === 'form-rate') {
+    var v = S.parseEuro($('r-val').value.trim());
+    if (!(v >= 8 && v <= 30)) { $('r-err').textContent = 'El tipo legal es el del BCE más 8 puntos, así que debe estar entre 8 y 30. Ejemplo: 10,40'; return; }
+    state.rates[$('r-sem').value] = S.round2(v); $('r-val').value = ''; save(); renderRates(); render();
+  }
+});
+$('btn-add').addEventListener('click', function(){ openInvoice(null); });
+$('btn-profile').addEventListener('click', function(){ var p = state.profile; $('p-name').value = p.name||''; $('p-nif').value = p.nif||''; $('p-email').value = p.email||''; $('p-address').value = p.address||''; $('p-iban').value = p.iban||''; $('p-nif-err').textContent = ''; $('p-iban-err').textContent = ''; openDlg($('dlg-profile')); });
+$('btn-rates').addEventListener('click', function(){ renderRates(); openDlg($('dlg-rates')); });
+$('btn-backup').addEventListener('click', function(){ $('b-text').value = JSON.stringify(state); $('b-msg').textContent = ''; ui.restoreArmed = false; $('b-restore').textContent = 'Restaurar desde el texto'; openDlg($('dlg-backup')); });
+$('b-copy').addEventListener('click', function(){
+  var ta = $('b-text'), m = $('b-msg');
+  try { navigator.clipboard.writeText(ta.value).then(function(){ m.textContent = 'Copia copiada al portapapeles.'; }, function(){ ta.select(); m.textContent = 'Selecciona el texto y cópialo a mano.'; }); } catch (e) { ta.select(); m.textContent = 'Selecciona el texto y cópialo a mano.'; }
+});
+$('b-restore').addEventListener('click', function(){
+  var m = $('b-msg');
+  try {
+    var d = JSON.parse($('b-text').value);
+    if (!d || !Array.isArray(d.invoices)) throw new Error('formato');
+    var n = normalize(d);
+    if (d.invoices.length && !n.invoices.length) throw new Error('vacío');
+    if (!ui.restoreArmed && state.invoices.length && !state.examples) { ui.restoreArmed = true; $('b-restore').textContent = 'Sí, sustituir mis ' + state.invoices.length + ' facturas'; m.textContent = 'Esto sustituye las ' + state.invoices.length + ' facturas que tienes ahora por las ' + n.invoices.length + ' de la copia. Pulsa otra vez para confirmar.'; return; }
+    ui.restoreArmed = false; $('b-restore').textContent = 'Restaurar desde el texto';
+    if (!d.profile || !Object.keys(d.profile).length) n.profile = state.profile;
+    state = n; ui.drafts = {}; if (!current()) state.selected = state.invoices.length ? state.invoices[0].id : null;
+    save(); render(); m.textContent = 'Restauradas ' + state.invoices.length + ' facturas.' + (n.invoices.length < d.invoices.length ? ' Se han descartado ' + (d.invoices.length - n.invoices.length) + ' con datos no válidos.' : '');
+  } catch (e) { m.textContent = 'Ese texto no es una copia de Sesenta. Pega la copia completa, desde la primera llave hasta la última.'; }
+});
+
+load(); autoTone();
+$('asof').value = ui.asOf; $('asof').min = '2015-01-01';
+render();
+})();
+</script>
+</body>
+</html>
